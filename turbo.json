@@ -1,0 +1,23 @@
+{
+    "tasks": {
+        "dev": {
+            "cache": false,
+            "persistent": true
+        },
+        "build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": [
+                "dist/**",
+                "build/**",
+                ".react-router/**"
+            ]
+        },
+        "test": {},
+        "typecheck": {},
+        "sync": {
+            "cache": false
+        }
+    }
+}
