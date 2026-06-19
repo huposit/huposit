@@ -1,20 +1,20 @@
 {
   "name": "huposit",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@11.8.0",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "test": "turbo run test",
+    "typecheck": "turbo run typecheck",
+    "sync:py": "turbo run sync"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devEngines": {
-    "packageManager": {
-      "name": "pnpm",
-      "version": "^11.8.0",
-      "onFail": "download"
-    }
-  },
-  "type": "module"
+  "devDependencies": {
+    "turbo": "^2.9.18"
+  }
 }
