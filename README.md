@@ -11,6 +11,8 @@
 - Web: React Router
 - API: FastAPI
 - Worker: Python + uv
+- Database: PostgreSQL 17 + pgvector
+- Local infra: Docker Compose
 - Package manager: pnpm 11.8.0
 - Python environment: uv
 
@@ -75,6 +77,15 @@ API health check:
 curl http://127.0.0.1:8000/health
 ```
 
+## Database
+
+로컬 개발 DB는 Docker Compose로 실행합니다.
+
+```bash
+pnpm db:up
+```
+
+
 ## Commands
 
 ```bash
@@ -83,6 +94,7 @@ pnpm build      # workspace build task 실행
 pnpm test       # workspace test task 실행
 pnpm typecheck  # workspace typecheck task 실행
 pnpm sync:py    # Python 앱 uv sync 실행
+pnpm db:up      # PostgreSQL + pgvector 컨테이너 실행
 ```
 
 ## Project Structure
