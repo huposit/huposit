@@ -1,12 +1,33 @@
-# Node.js
-node_modules
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
 
-# Uv env
+# Environment
+.env
+.env.*
+!.env.example
+
+# Node.js / pnpm
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.react-router/
+
+# Python / uv
 .venv/
 __pycache__/
 .pytest_cache/
 .mypy_cache/
 .ruff_cache/
+.coverage
+htmlcov/
 
 # Turbo
-.turbo
+.turbo/
+
+# Logs
+*.log
