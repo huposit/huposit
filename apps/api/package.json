@@ -3,7 +3,7 @@
   "private": true,
   "scripts": {
     "sync": "uv sync",
-    "dev": "uv run fastapi dev app/main.py",
+    "dev": "uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
     "test": "uv run pytest",
     "typecheck": "uv run mypy app",
     "lint": "uv run ruff check app"
