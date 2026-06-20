@@ -1,0 +1,11 @@
+{
+  "name": "@huposit/worker",
+  "private": true,
+  "scripts": {
+    "sync": "uv sync",
+    "dev": "uv run python -m app.main",
+    "test": "uv run pytest",
+    "typecheck": "uv run mypy app",
+    "lint": "uv run ruff check app"
+  }
+}

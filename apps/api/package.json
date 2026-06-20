@@ -1,0 +1,11 @@
+{
+  "name": "@huposit/api",
+  "private": true,
+  "scripts": {
+    "sync": "uv sync",
+    "dev": "uv run fastapi dev app/main.py",
+    "test": "uv run pytest",
+    "typecheck": "uv run mypy app",
+    "lint": "uv run ruff check app"
+  }
+}
