@@ -211,6 +211,8 @@ importers:
         specifier: ^2.9.18
         version: 2.9.18
 
+  apps/api: {}
+
   apps/web:
     dependencies:
       '@react-router/node':
