@@ -13,6 +13,8 @@ Before doing ticket work in this repository, Codex must:
 5. Keep changes scoped to the Linear issue.
 6. Report verification results before asking to commit or push.
 
+For frontend work, Codex must also read `docs/frontend.md` and keep UI, routing, component, token, and API-client decisions aligned with it unless the Linear issue explicitly changes that direction.
+
 Codex-specific hard rule:
 
 - Do not create commits without explicit user approval.
