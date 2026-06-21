@@ -15,6 +15,8 @@ Before doing ticket work in this repository, Codex must:
 
 For frontend work, Codex must also read `docs/frontend.md` and keep UI, routing, component, token, and API-client decisions aligned with it unless the Linear issue explicitly changes that direction.
 
+For backend work, Codex must also read `docs/backend.md` and keep API, domain model, authentication, job processing, storage, concurrency, and OpenAPI decisions aligned with it unless the Linear issue explicitly changes that direction.
+
 Codex-specific hard rule:
 
 - Do not create commits without explicit user approval.
