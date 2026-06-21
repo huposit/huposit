@@ -2,5 +2,5 @@ import os
 
 os.environ.setdefault(
     "DATABASE_URL",
-    "postgresql+asyncpg://root:1234@localhost:5432/pgvdb",
+    "postgresql+asyncpg://test:test@127.0.0.1:1/test",
 )
