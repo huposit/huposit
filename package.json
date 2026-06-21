@@ -8,6 +8,7 @@
     "dev": "turbo run dev",
     "build": "turbo run build",
     "test": "turbo run test",
+    "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "sync:py": "turbo run sync",
     "db:up": "docker compose -f infra/compose.yml up -d"

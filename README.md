@@ -91,9 +91,31 @@ curl http://127.0.0.1:8000/health/db
 pnpm dev        # workspace dev task 실행
 pnpm build      # workspace build task 실행
 pnpm test       # workspace test task 실행
+pnpm lint       # workspace lint task 실행
 pnpm typecheck  # workspace typecheck task 실행
 pnpm sync:py    # Python 앱 uv sync 실행
 pnpm db:up      # PostgreSQL + pgvector 컨테이너 실행
+```
+
+`build`, `test`, `lint`, `typecheck`는 `apps/web`, `apps/api`, `apps/worker`에서 공통으로 지원합니다. Python 앱의 `build`는 아직 패키징을 만들지 않고 `compileall`로 앱 코드의 문법/import 가능성을 검증합니다.
+
+개별 앱 검증:
+
+```bash
+pnpm --filter @huposit/web build
+pnpm --filter @huposit/web test
+pnpm --filter @huposit/web lint
+pnpm --filter @huposit/web typecheck
+
+pnpm --filter @huposit/api build
+pnpm --filter @huposit/api test
+pnpm --filter @huposit/api lint
+pnpm --filter @huposit/api typecheck
+
+pnpm --filter @huposit/worker build
+pnpm --filter @huposit/worker test
+pnpm --filter @huposit/worker lint
+pnpm --filter @huposit/worker typecheck
 ```
 
 ## Project Structure

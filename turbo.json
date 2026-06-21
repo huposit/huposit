@@ -14,7 +14,20 @@
                 ".react-router/**"
             ]
         },
+        "@huposit/api#build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": []
+        },
+        "@huposit/worker#build": {
+            "dependsOn": [
+                "^build"
+            ],
+            "outputs": []
+        },
         "test": {},
+        "lint": {},
         "typecheck": {},
         "sync": {
             "cache": false
