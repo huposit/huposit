@@ -3,6 +3,7 @@
   "private": true,
   "scripts": {
     "sync": "uv sync",
+    "build": "uv run python -m compileall -q app",
     "dev": "uv run python -m app.main",
     "test": "uv run pytest",
     "typecheck": "uv run mypy app",
