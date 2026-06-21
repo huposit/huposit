@@ -1,0 +1,22 @@
+{
+  "include": [
+    "apps/api/app",
+    "apps/api/tests",
+    "apps/worker/app",
+    "apps/worker/tests"
+  ],
+  "executionEnvironments": [
+    {
+      "root": "apps/api",
+      "extraPaths": [
+        "apps/api"
+      ]
+    },
+    {
+      "root": "apps/worker",
+      "extraPaths": [
+        "apps/worker"
+      ]
+    }
+  ]
+}

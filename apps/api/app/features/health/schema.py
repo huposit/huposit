@@ -11,3 +11,9 @@ class HealthResponse(BaseModel):
 class DatabaseHealthResponse(BaseModel):
     status: Literal["ok", "error"]
     database: Literal["connected", "disconnected"]
+
+
+class WorkerHealthResponse(BaseModel):
+    status: Literal["ok"]
+    worker: Literal["available"]
+    mode: Literal["api_placeholder"]

@@ -83,7 +83,25 @@ API 확인:
 ```bash
 curl http://127.0.0.1:8000/health
 curl http://127.0.0.1:8000/health/db
+curl http://127.0.0.1:8000/health/worker
 ```
+
+## Editor Import Resolution
+
+이 저장소는 API와 worker가 모두 Python 패키지 이름으로 `app`을 사용합니다.
+
+```txt
+apps/api/app/main.py
+apps/worker/app/main.py
+```
+
+이 구조에서는 VS Code/Pylance 또는 Pyright가 `from app.main import ...` 같은 import를 해석할 때 API의 `app`과 worker의 `app`을 혼동할 수 있습니다. 루트의 [pyrightconfig.json](pyrightconfig.json)은 파일 위치에 따라 import 기준 경로를 분리하기 위한 에디터 설정입니다.
+
+- `apps/api` 아래 파일은 `apps/api`를 import root로 봅니다.
+- `apps/worker` 아래 파일은 `apps/worker`를 import root로 봅니다.
+- 이 설정은 에디터의 빨간줄과 자동완성 해석을 돕기 위한 것이며, 앱 실행이나 pytest/mypy 검증 방식을 바꾸지 않습니다.
+
+VS Code에서 import 빨간줄이 남아 있으면 `Python: Restart Language Server`를 실행합니다.
 
 ## Commands
 
