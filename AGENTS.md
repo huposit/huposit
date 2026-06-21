@@ -2,7 +2,9 @@
 
 ver. 1.0.0_26.06.20
 
-`docs/workflow.md` is the single source of truth for Linear, Codex, GitHub PR, branch, commit, verification, merge, and cleanup rules.
+`docs/workflow.md` is the single source of truth for Linear, Codex, GitHub PR, branch, commit, verification reporting, merge, and cleanup rules.
+
+`docs/testflow.md` defines the repository verification command contract, including root commands, app-specific commands, test independence rules, and verification reporting expectations.
 
 Before doing ticket work in this repository, Codex must:
 
@@ -11,7 +13,8 @@ Before doing ticket work in this repository, Codex must:
 3. Confirm the issue has clear `Goal`, `Scope`, and `Done when` sections.
 4. Check the current branch and working tree with `git status --short --branch`.
 5. Keep changes scoped to the Linear issue.
-6. Report verification results before asking to commit or push.
+6. Use `docs/testflow.md` to choose and explain verification commands when the work changes tests, build scripts, lint/typecheck behavior, or verification documentation.
+7. Report verification results before asking to commit or push.
 
 For frontend work, Codex must also read `docs/frontend.md` and keep UI, routing, component, token, and API-client decisions aligned with it unless the Linear issue explicitly changes that direction.
 

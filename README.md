@@ -99,24 +99,7 @@ pnpm db:up      # PostgreSQL + pgvector 컨테이너 실행
 
 `build`, `test`, `lint`, `typecheck`는 `apps/web`, `apps/api`, `apps/worker`에서 공통으로 지원합니다. Python 앱의 `build`는 아직 패키징을 만들지 않고 `compileall`로 앱 코드의 문법/import 가능성을 검증합니다.
 
-개별 앱 검증:
-
-```bash
-pnpm --filter @huposit/web build
-pnpm --filter @huposit/web test
-pnpm --filter @huposit/web lint
-pnpm --filter @huposit/web typecheck
-
-pnpm --filter @huposit/api build
-pnpm --filter @huposit/api test
-pnpm --filter @huposit/api lint
-pnpm --filter @huposit/api typecheck
-
-pnpm --filter @huposit/worker build
-pnpm --filter @huposit/worker test
-pnpm --filter @huposit/worker lint
-pnpm --filter @huposit/worker typecheck
-```
+검증 명령의 실행 기준과 앱별 세부 의미는 [docs/testflow.md](docs/testflow.md)를 따릅니다.
 
 ## Project Structure
 
@@ -130,6 +113,7 @@ infra/       # Docker Compose and local infrastructure
 docs/
   logs/      # Linear Done time based development logs
   workflow.md
+  testflow.md
 ```
 
 ## Workflow
@@ -137,6 +121,7 @@ docs/
 개발 작업은 Linear issue에서 시작하고 GitHub PR로 merge합니다.
 
 - 상세 작업 규칙: [docs/workflow.md](docs/workflow.md)
+- 테스트/검증 규칙: [docs/testflow.md](docs/testflow.md)
 - Codex 작업 규칙: [AGENTS.md](AGENTS.md)
 - 개발 로그 색인: [docs/logs/README.md](docs/logs/README.md)
 
