@@ -1,12 +1,13 @@
-import { Welcome } from "../welcome/welcome";
+import type { Route } from "./+types/home";
 
-export function meta() {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
+export const loader = async () => {
+  return { home: "loader" };
+};
 
-export default function Home() {
-  return <Welcome />;
+export const action = async () => {};
+
+export default function Home({ loaderData }: Route.ComponentProps) {
+  console.log(loaderData);
+
+  return <h1> hi </h1>;
 }
