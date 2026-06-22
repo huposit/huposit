@@ -1,13 +1,27 @@
+import { LandingPage } from "~/features/landing/screens/landing-page";
 import type { Route } from "./+types/home";
+import {
+  getDatabaseHealthResponse,
+  getHealthResponse,
+  getWorkerHealthResponse
+} from "~/features/health/api";
+
 
 export const loader = async () => {
-  return { home: "loader" };
+
+  const [server, database, worker] = await Promise.all([
+    getHealthResponse(),
+    getDatabaseHealthResponse(),
+    getWorkerHealthResponse()
+  ])
+
+  return {
+    health: { server, database, worker }
+  };
 };
 
-export const action = async () => {};
-
 export default function Home({ loaderData }: Route.ComponentProps) {
-  console.log(loaderData);
+  const homeData = loaderData
 
-  return <h1> hi </h1>;
+  return <LandingPage homeData={homeData} />;
 }

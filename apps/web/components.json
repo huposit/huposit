@@ -12,7 +12,7 @@
   "iconLibrary": "phosphor",
   "rtl": false,
   "aliases": {
-    "components": "~/core/omponents",
+    "components": "~/core/components",
     "utils": "~/core/lib/utils",
     "ui": "~/core/components/ui",
     "lib": "~/core/lib",
