@@ -11,6 +11,9 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "sync:py": "turbo run sync",
+    "openapi:json": "pnpm --filter @huposit/api openapi:json",
+    "openapi:types": "pnpm --filter @huposit/web openapi:types",
+    "openapi:generate": "pnpm openapi:json && pnpm openapi:types",
     "db:up": "docker compose -f infra/compose.yml up -d"
   },
   "keywords": [],

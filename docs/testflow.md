@@ -145,6 +145,14 @@ pnpm typecheck
 
 변경 범위가 특정 앱에만 닿는 경우에는 앱별 명령으로 빠르게 확인한 뒤, PR 전에는 필요한 루트 명령을 실행한다.
 
+API response model, route, `operation_id`, OpenAPI schema, 생성 타입, web API 타입 연결이 바뀌는 티켓은 루트 검증 전에 다음 명령을 실행한다.
+
+```bash
+pnpm openapi:generate
+```
+
+이 명령은 서버를 띄우지 않고 `generated/openapi.json`과 `apps/web/app/core/api/openapi-types.ts`를 갱신한다. 생성 파일은 직접 수정하지 않고, PR에서 API 계약 변경을 확인할 수 있도록 함께 커밋한다.
+
 ## 7. 검증 보고 형식
 
 Codex 또는 작업자는 구현 후 다음 정보를 보고한다.
@@ -152,6 +160,7 @@ Codex 또는 작업자는 구현 후 다음 정보를 보고한다.
 ```md
 ## 확인
 
+- `pnpm openapi:generate` 성공  # OpenAPI 계약 또는 생성 타입이 바뀐 경우
 - `pnpm lint` 성공
 - `pnpm typecheck` 성공
 - `pnpm test` 성공

@@ -5,6 +5,7 @@
     "sync": "uv sync",
     "build": "uv run python -m compileall -q app",
     "dev": "uv run uvicorn app.main:app --reload --host 127.0.0.1 --port 8000",
+    "openapi:json": "uv run python -m app.tools.export_openapi",
     "test": "uv run pytest",
     "typecheck": "uv run mypy app",
     "lint": "uv run ruff check app"

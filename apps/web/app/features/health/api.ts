@@ -1,4 +1,4 @@
-import { getApi } from "~/core/lib/api-fetch";
+import { getApi } from "~/core/api/client";
 import {
   type HealthResponse,
   type DatabaseHealthResponse,

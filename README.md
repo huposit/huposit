@@ -41,6 +41,14 @@ corepack enable
 corepack prepare pnpm@11.8.0 --activate
 ```
 
+`uv`는 설치 후 셸에서 실행 가능해야 합니다.
+
+```bash
+uv --version
+```
+
+WSL/Linux에서 `uv`를 설치했는데 명령을 찾지 못하면 `~/.local/bin`이 `PATH`에 포함되어 있는지 확인합니다.
+
 ## Setup
 
 저장소 루트에서 의존성을 설치합니다.
@@ -112,12 +120,30 @@ pnpm test       # workspace test task 실행
 pnpm lint       # workspace lint task 실행
 pnpm typecheck  # workspace typecheck task 실행
 pnpm sync:py    # Python 앱 uv sync 실행
+pnpm openapi:generate  # OpenAPI schema와 web TypeScript 타입 생성
 pnpm db:up      # PostgreSQL + pgvector 컨테이너 실행
 ```
 
 `build`, `test`, `lint`, `typecheck`는 `apps/web`, `apps/api`, `apps/worker`에서 공통으로 지원합니다. Python 앱의 `build`는 아직 패키징을 만들지 않고 `compileall`로 앱 코드의 문법/import 가능성을 검증합니다.
 
 검증 명령의 실행 기준과 앱별 세부 의미는 [docs/testflow.md](docs/testflow.md)를 따릅니다.
+
+## OpenAPI Type Generation
+
+FastAPI OpenAPI schema와 web TypeScript 타입은 서버를 띄우지 않고 생성합니다.
+
+```bash
+pnpm openapi:generate
+```
+
+이 명령은 다음 두 단계를 실행합니다.
+
+```bash
+pnpm openapi:json   # generated/openapi.json 생성
+pnpm openapi:types  # apps/web/app/core/api/openapi-types.ts 생성
+```
+
+생성 파일은 API 계약 변경을 PR에서 확인할 수 있도록 커밋합니다. `apps/web/app/core/api/openapi-types.ts`는 생성 파일이므로 직접 수정하지 않고, FastAPI schema를 바꾼 뒤 `pnpm openapi:generate`로 다시 만듭니다. API client와 OpenAPI 타입 helper는 `apps/web/app/core/api` 아래에 둡니다.
 
 ## Project Structure
 
