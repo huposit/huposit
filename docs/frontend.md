@@ -313,10 +313,10 @@ export default [
 
 ## API 연결 방향
 
-백엔드는 FastAPI이므로 OpenAPI 스펙을 자연스럽게 얻을 수 있다. 프론트에서는 다음 방향을 검토한다.
+백엔드는 FastAPI이므로 OpenAPI 스펙을 자연스럽게 얻을 수 있다. 프론트에서는 다음 방향을 따른다.
 
-1. FastAPI의 `/openapi.json`을 기준으로 타입을 생성한다.
-2. 생성된 타입을 기반으로 API 클라이언트를 만든다.
+1. 서버를 띄우지 않고 생성한 `generated/openapi.json`을 기준으로 TypeScript 타입을 생성한다.
+2. 생성된 타입을 기반으로 feature별 API 응답 타입을 정의한다.
 3. 파일 업로드, 처리 상태, 검색 API는 프론트 도메인별 hooks에서 감싼다.
 4. 생성 코드는 사람이 직접 수정하지 않는다.
 
@@ -328,10 +328,16 @@ export default [
 
 초기에는 API가 자주 바뀔 수 있으므로, 바로 복잡한 SDK 구조를 만들기보다 다음 순서가 좋다.
 
-- 1단계: 수동 fetch 래퍼와 명시적 타입
+- 1단계: 수동 fetch 래퍼
 - 2단계: OpenAPI 타입 생성
-- 3단계: OpenAPI 기반 클라이언트 생성
+- 3단계: 필요할 때 OpenAPI 기반 클라이언트 생성
 - 4단계: React Query hooks 자동/반자동 생성 검토
+
+현재 기본 위치:
+
+- API client: `apps/web/app/core/api/client.ts`
+- OpenAPI generated types: `apps/web/app/core/api/openapi-types.ts`
+- OpenAPI type helpers: `apps/web/app/core/api/openapi-helpers.ts`
 
 ## 데이터 패칭과 상태 관리
 
@@ -588,21 +594,21 @@ Done when:
 - slide 화면에서 deck으로 돌아갈 수 있다
 - 긴 추출 텍스트가 레이아웃을 깨지 않는다
 
-### 7. OpenAPI 타입 생성 검토 및 API 클라이언트 초안
+### 7. OpenAPI 타입 생성 흐름 확장 및 API 클라이언트 검토
 
-Goal: FastAPI OpenAPI 스펙 기반 프론트 타입/클라이언트 생성 방식을 결정한다.
+Goal: HUP-12에서 시작한 OpenAPI 타입 생성 흐름을 실제 도메인 API로 확장하고, API client 자동 생성 여부를 결정한다.
 
 Scope:
 
-- `openapi-typescript`, `openapi-fetch`, `orval` 비교
-- 로컬 FastAPI `/openapi.json` 기준 생성 실험
-- 생성 파일 위치와 npm script 제안
-- 실제 화면 연결은 제외
+- 신규 API 타입을 `openapi-typescript` 생성 타입 기반으로 연결한다.
+- `core/api/client.ts`의 수동 fetch 래퍼가 충분한지 확인한다.
+- 필요하면 `openapi-fetch` 또는 `orval` 도입 여부를 비교한다.
+- 실제 화면 연결은 API별 구현 티켓에서 다룬다.
 
 Done when:
 
-- 선택한 방식과 이유가 문서화된다
-- 타입 생성 명령 초안이 정리된다
+- health 외 API 타입이 생성 타입 기반으로 연결된다
+- API client 자동 생성 여부와 이유가 문서화된다
 - 후속 API 연결 티켓이 분리된다
 
 ### 8. 백엔드 API와 업로드/작업 상태 연결

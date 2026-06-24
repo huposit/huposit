@@ -18,7 +18,7 @@ router = APIRouter(prefix="/health", tags=["health"])
 @router.get(
     "",
     response_model=HealthResponse,
-    operation_id="getHealth",
+    operation_id="getServerHealth",
 )
 def health() -> HealthResponse:
     return build_health()

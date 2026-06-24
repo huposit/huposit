@@ -55,9 +55,10 @@ User
 현재 백엔드는 최소 구조만 있다.
 
 - `apps/api`: FastAPI 앱
-- `apps/api/app/main.py`: `/health`, `/health/db`
+- `apps/api/app/main.py`: `/health`, `/health/db`, `/health/worker`
 - `apps/api/app/core/config.py`: `.env` 기반 설정
 - `apps/api/app/db/session.py`: SQLAlchemy async engine/session
+- `apps/api/app/tools/export_openapi.py`: 서버 실행 없이 OpenAPI JSON을 생성하는 도구
 - `apps/worker`: Python worker 앱
 - `apps/worker/app/main.py`: heartbeat loop
 - `infra/compose.yml`: PostgreSQL 17 + pgvector
@@ -170,7 +171,9 @@ FastAPI는 OpenAPI 스펙을 자동 생성한다. 휴포짓은 이 장점을 적
 원칙:
 
 - 프론트와 백엔드의 DTO 동기화 기준은 `/openapi.json`이다.
+- 모노레포 검증과 타입 생성에는 서버를 띄우지 않고 `app.openapi()`에서 생성한 `generated/openapi.json`을 사용한다.
 - API 응답 모델은 Pydantic schema로 명시한다.
+- 공개 endpoint는 필요하면 안정적인 `operation_id`를 명시해 생성 타입과 future client 이름이 흔들리지 않게 한다.
 - schema 이름은 프론트 도메인 용어와 맞춘다.
 - 생성된 프론트 타입은 사람이 직접 수정하지 않는다.
 - breaking change는 `docs/frontend.md`와 `docs/backend.md`에 반영한다.
@@ -183,9 +186,9 @@ FastAPI는 OpenAPI 스펙을 자동 생성한다. 휴포짓은 이 장점을 적
 
 권장 순서:
 
-1. API가 안정되기 전에는 수동 fetch 래퍼와 명시적 타입으로 시작한다.
-2. 주요 API 경계가 정리되면 OpenAPI 타입 생성을 추가한다.
-3. 타입 생성이 안정되면 API client 생성을 검토한다.
+1. API가 안정되기 전에는 수동 fetch 래퍼로 시작한다.
+2. OpenAPI 타입은 `openapi-typescript`로 생성해 수동 타입 선언을 줄인다.
+3. 타입 생성이 안정되면 API client 자동 생성을 검토한다.
 4. 프론트에서 cache와 polling이 늘어나면 TanStack Query hooks 생성을 검토한다.
 
 초기 API 경계:
@@ -193,6 +196,7 @@ FastAPI는 OpenAPI 스펙을 자동 생성한다. 휴포짓은 이 장점을 적
 ```txt
 GET    /health
 GET    /health/db
+GET    /health/worker
 
 POST   /auth/login
 POST   /auth/logout
@@ -666,23 +670,22 @@ Done when:
 - 실패 시 job이 failed로 기록된다
 - 긴 텍스트와 빈 슬라이드를 처리한다
 
-### 9. OpenAPI 타입 생성 스크립트
+### 9. OpenAPI 타입 생성 흐름 확장
 
-Goal: 백엔드 DTO와 프론트 타입 동기화 비용을 줄인다.
+Goal: HUP-12에서 시작한 OpenAPI 기반 타입 생성 흐름을 health 외 API로 확장한다.
 
 Scope:
 
-- `/openapi.json` export 방법
-- 프론트 타입 생성 도구 선택
-- 생성 파일 위치 결정
-- npm script 추가
-- 생성 파일 직접 수정 금지 규칙 문서화
+- 신규 API response model에 안정적인 schema 이름과 `operation_id`를 부여한다.
+- `pnpm openapi:generate`로 `generated/openapi.json`과 web 타입을 갱신한다.
+- health 외 도메인 API 타입을 생성 타입 기반으로 교체한다.
+- API client 자동 생성이 필요한지 별도 검토한다.
 
 Done when:
 
-- 로컬에서 타입 생성 명령이 동작한다
-- 생성 타입이 web 앱에서 import 가능하다
-- 문서에 사용법이 있다
+- health 외 신규 API 타입이 생성 타입 기반으로 import된다
+- 생성 파일 변경이 PR에서 확인 가능하다
+- `pnpm openapi:generate`와 루트 검증 명령이 통과한다
 
 ### 10. 검색 API 1차
 
