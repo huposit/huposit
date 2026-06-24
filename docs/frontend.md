@@ -462,28 +462,28 @@ Goal: 모노레포 개발환경 마무리 단계로, 프론트에서 API health,
 
 Scope:
 
-- 버건디 기반 semantic token을 `app.css`에 적용한다.
-- shadcn 스타일 `Button`을 최소 범위로 추가한다.
+- shadcn 스타일 `Button`, `Card`를 최소 범위로 추가한다.
 - home route에서 간단한 휴포짓 소개 문구와 상태 체크 패널을 보여준다.
 - React Router loader로 초기 상태를 조회한다.
-- React Router action에서 `intent` 값으로 Health Check, DB Connection Check, Worker Check 요청을 구분한다.
-- FastAPI `/openapi.json`을 기준으로 TypeScript 타입을 생성하고 health API 호출에 사용한다.
-- 각 체크 결과에는 한국시간 기준의 확인 시간을 표시한다.
+- React Router `useRevalidator()`로 Health Check, DB Connection Check, Worker Check 버튼 요청을 처리한다.
 - Worker Check는 실제 job queue 구현이 아니라 현재 worker 연결 확인에 필요한 최소 상태 응답으로 제한한다.
+- 프론트 코드는 간결하고 읽기 쉽게 작성한다.
 
 Non-goal:
 
 - 네비게이션, 파일 업로드, 검색, 실제 processing job queue UI는 만들지 않는다.
 - DB 데이터 삽입은 하지 않는다.
-- 장기 API client 생성 도구 비교는 하지 않는다. 단, health API 호출에 필요한 최소 OpenAPI typegen과 client 초안은 포함한다.
+- React Router action 기반의 버튼별 독립 체크는 하지 않는다.
+- 카드별 `useFetcher()` 또는 resource route 구현은 후속 티켓으로 분리한다.
+- FastAPI `/openapi.json` 기반 TypeScript typegen과 장기 API client 생성 도구 비교는 하지 않는다.
+- 한국시간 기준 체크 시간 표시는 후속 티켓으로 분리한다.
+- 버건디 기반 semantic token 정리는 별도 UI 토큰 티켓에서 다룬다.
 
 Done when:
 
 - `pnpm dev` 실행 후 home 화면에서 3개 상태 체크가 가능하다.
 - loader로 초기 상태가 표시된다.
-- action으로 버튼별 상태 체크가 동작한다.
-- health API 호출 타입이 FastAPI `/openapi.json`에서 생성된 TypeScript 타입을 사용한다.
-- 한국시간 기준 체크 시간이 화면에 표시된다.
+- 버튼 클릭 시 현재 health loader가 다시 실행된다.
 - `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`가 통과한다.
 
 ### 1. 프론트 UI 토큰과 기본 컴포넌트 도입

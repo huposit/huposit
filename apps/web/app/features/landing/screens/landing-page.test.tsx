@@ -3,14 +3,14 @@ import { createMemoryRouter, RouterProvider } from "react-router";
 import { describe, expect, it } from "vitest";
 
 import { LandingPage } from "./landing-page";
-import type { HealthCheck } from "~/features/health/type";
+import type { LandingPageProps } from "./landing-page";
 
 describe("LandingPage", () => {
   it("renders health check cards", () => {
     const router = createMemoryRouter([
       {
         path: "/",
-        element: <LandingPage checks={checks} />,
+        element: <LandingPage homeData={homeData} />,
       },
     ]);
 
@@ -23,26 +23,10 @@ describe("LandingPage", () => {
   });
 });
 
-const checks: HealthCheck[] = [
-  {
-    id: "health",
-    title: "API Health",
-    ok: true,
-    detail: "status=ok",
-    checkedAt: "2026. 6. 22. 오전 9:00:00",
+const homeData: LandingPageProps["homeData"] = {
+  health: {
+    server: { status: "ok" },
+    database: { status: "ok", database: "connected" },
+    worker: { status: "ok", worker: "available", mode: "api_placeholder" },
   },
-  {
-    id: "database",
-    title: "DB Connection",
-    ok: true,
-    detail: "status=ok, database=connected",
-    checkedAt: "2026. 6. 22. 오전 9:00:00",
-  },
-  {
-    id: "worker",
-    title: "Worker",
-    ok: true,
-    detail: "worker=available, mode=api_placeholder",
-    checkedAt: "2026. 6. 22. 오전 9:00:00",
-  },
-];
+};
