@@ -1,7 +1,7 @@
 # Development Logs
 
 ```yaml
-as_of: "2026-06-20"
+as_of: "2026-06-21"
 type: "log_index"
 repo: "huposit"
 timezone: "Asia/Seoul"
@@ -33,5 +33,6 @@ docs/logs/
 
 ## 2026-06
 
+- [2026-06-21](2026-06/week-25/2026-06-21.md)
 - [2026-06-20](2026-06/week-25/2026-06-20.md)
 - [2026-06-19](2026-06/week-25/2026-06-19.md)

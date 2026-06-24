@@ -454,6 +454,38 @@ MVP 업로드는 단순해야 한다.
 
 아래 순서로 Linear issue를 분리하는 것을 권장한다.
 
+### HUP-11. 초기 랜딩 상태 체크 화면
+
+Goal: 모노레포 개발환경 마무리 단계로, 프론트에서 API health, DB connection, worker 상태 체크 흐름을 확인한다.
+
+이 티켓은 장기 콘솔 앱 셸을 완성하는 작업이 아니라, 프론트와 백엔드가 같은 개발환경에서 연결되는지 확인하는 임시 초기 화면이다. 이후 콘솔 앱 셸과 네비게이션이 들어오면 이 화면은 `Settings`의 API 연결 상태 영역이나 별도 개발 진단 화면으로 이동할 수 있다.
+
+Scope:
+
+- shadcn 스타일 `Button`, `Card`를 최소 범위로 추가한다.
+- home route에서 간단한 휴포짓 소개 문구와 상태 체크 패널을 보여준다.
+- React Router loader로 초기 상태를 조회한다.
+- React Router `useRevalidator()`로 Health Check, DB Connection Check, Worker Check 버튼 요청을 처리한다.
+- Worker Check는 실제 job queue 구현이 아니라 현재 worker 연결 확인에 필요한 최소 상태 응답으로 제한한다.
+- 프론트 코드는 간결하고 읽기 쉽게 작성한다.
+
+Non-goal:
+
+- 네비게이션, 파일 업로드, 검색, 실제 processing job queue UI는 만들지 않는다.
+- DB 데이터 삽입은 하지 않는다.
+- React Router action 기반의 버튼별 독립 체크는 하지 않는다.
+- 카드별 `useFetcher()` 또는 resource route 구현은 후속 티켓으로 분리한다.
+- FastAPI `/openapi.json` 기반 TypeScript typegen과 장기 API client 생성 도구 비교는 하지 않는다.
+- 한국시간 기준 체크 시간 표시는 후속 티켓으로 분리한다.
+- 버건디 기반 semantic token 정리는 별도 UI 토큰 티켓에서 다룬다.
+
+Done when:
+
+- `pnpm dev` 실행 후 home 화면에서 3개 상태 체크가 가능하다.
+- loader로 초기 상태가 표시된다.
+- 버튼 클릭 시 현재 health loader가 다시 실행된다.
+- `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`가 통과한다.
+
 ### 1. 프론트 UI 토큰과 기본 컴포넌트 도입
 
 Goal: 버건디 기반 UI 토큰과 최소 shadcn/Radix 컴포넌트 기반을 만든다.
@@ -645,5 +677,6 @@ Done when:
 - 화면이 있는 변경은 데스크톱과 모바일 폭에서 직접 확인
 - 텍스트가 버튼, 카드, 패널 밖으로 넘치지 않는지 확인
 - 빈 상태, 로딩 상태, 실패 상태 확인
+- API 연결 화면은 백엔드가 켜진 상태와 꺼진 상태를 모두 확인
 
 문서만 변경하는 티켓은 링크, 오탈자, 범위 준수 여부를 확인한다.

@@ -1,12 +1,27 @@
-import { Welcome } from "../welcome/welcome";
+import { LandingPage } from "~/features/landing/screens/landing-page";
+import type { Route } from "./+types/home";
+import {
+  getDatabaseHealthResponse,
+  getHealthResponse,
+  getWorkerHealthResponse
+} from "~/features/health/api";
 
-export function meta() {
-  return [
-    { title: "New React Router App" },
-    { name: "description", content: "Welcome to React Router!" },
-  ];
-}
 
-export default function Home() {
-  return <Welcome />;
+export const loader = async () => {
+
+  const [server, database, worker] = await Promise.all([
+    getHealthResponse(),
+    getDatabaseHealthResponse(),
+    getWorkerHealthResponse()
+  ])
+
+  return {
+    health: { server, database, worker }
+  };
+};
+
+export default function Home({ loaderData }: Route.ComponentProps) {
+  const homeData = loaderData
+
+  return <LandingPage homeData={homeData} />;
 }

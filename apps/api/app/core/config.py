@@ -5,7 +5,7 @@ ROOT_DIR = Path(__file__).resolve().parents[4]
 ENV_FILE = ROOT_DIR / ".env"
 
 class Settings(BaseSettings):
-    database_url: str
+    database_url: str = "postgresql+asyncpg://root:1234@localhost:5432/pgvdb"
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,
