@@ -1,0 +1,20 @@
+{
+  "folders": [
+    {
+      "name": "api",
+      "path": "../apps/api"
+    },
+    {
+      "name": "web",
+      "path": "../apps/web"
+    },
+    {
+      "name": "worker",
+      "path": "../apps/worker"
+    },
+    {
+      "name": "huposit",
+      "path": ".."
+    }
+  ]
+}

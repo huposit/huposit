@@ -1,0 +1,21 @@
+{
+  "files.exclude": {
+    "**/node_modules": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.react-router": true,
+    "**/pnpm-lock.yaml": true
+  },
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/.pnpm-store": true,
+    "**/.turbo": true,
+    "**/dist": true,
+    "**/build": true,
+    "**/.react-router": true,
+    "**/pnpm-lock.yaml": true
+  },
+  "css.lint.unknownAtRules": "ignore",
+}
