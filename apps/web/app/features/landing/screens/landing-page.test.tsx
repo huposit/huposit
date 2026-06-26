@@ -17,6 +17,7 @@ describe("LandingPage", () => {
     const html = renderToString(<RouterProvider router={router} />);
 
     expect(html).toContain("개인 맥락을 저장하고 다시 찾는 작업 공간");
+    expect(html).toContain("회원가입 요청");
     expect(html).toContain("API Health");
     expect(html).toContain("DB Connection");
     expect(html).toContain("Worker");

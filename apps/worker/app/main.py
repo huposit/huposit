@@ -6,7 +6,7 @@ def main() -> None:
 
     while True:
         print("Worker heartbeat")
-        time.sleep(10)
+        time.sleep(200)
 
 
 if __name__ == "__main__":
