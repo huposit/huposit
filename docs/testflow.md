@@ -36,6 +36,8 @@ pnpm typecheck
 
 루트 명령은 PR 전 전체 검증에 사용한다. 작은 문서 변경처럼 영향 범위가 좁은 경우에도 Linear issue의 `Done when`에 명시된 검증은 실행한다.
 
+Python 코드 포맷 확인과 정리는 `autopep8`을 사용한다. `autopep8`은 포맷 도구이며, 공식 검증 결과 보고에서는 위 표의 `lint`, `typecheck`, `test`, `build` 명령 성공 여부를 기준으로 남긴다.
+
 ## 3. 앱별 검증 명령
 
 앱 하나만 변경했거나 실패 지점을 좁힐 때는 `--filter`를 사용한다.

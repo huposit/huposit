@@ -58,6 +58,8 @@ User
 - `apps/api/app/main.py`: `/health`, `/health/db`, `/health/worker`
 - `apps/api/app/core/config.py`: `.env` 기반 설정
 - `apps/api/app/db/session.py`: SQLAlchemy async engine/session
+- `apps/api/app/db/base.py`: SQLAlchemy `Base`와 `TimestampMixin`
+- `apps/api/app/db/migrations`: Alembic migration 설정과 revision 파일
 - `apps/api/app/tools/export_openapi.py`: 서버 실행 없이 OpenAPI JSON을 생성하는 도구
 - `apps/worker`: Python worker 앱
 - `apps/worker/app/main.py`: heartbeat loop
@@ -95,6 +97,7 @@ apps/api/app/
     security.py
     errors.py
   db/
+    base.py
     session.py
     migrations/
   api/
@@ -161,8 +164,37 @@ apps/worker/app/
 - `repositories`: DB query를 담당한다.
 - `domain`: 상태 전이, enum, 도메인 규칙을 둔다.
 - `worker/jobs`: job type별 실행 흐름을 담당한다.
+- Python 패키지는 namespace package 방식을 사용하고, 새 디렉터리를 만들 때 `__init__.py`를 추가하지 않는다.
+- SQLAlchemy 모델은 `app/db/base.py`의 `Base`를 상속한다.
+- `created_at`, `updated_at`이 필요한 테이블은 `TimestampMixin`을 함께 상속한다.
 
 중복 제거는 service 계층에서 시작한다. repository를 너무 일찍 generic하게 만들지 않는다.
+
+## DB Migration
+
+DB schema 변경은 Alembic revision으로 관리한다. Docker init SQL은 PostgreSQL 확장 설치처럼 초기 인프라에 필요한 작업에만 사용하고, 애플리케이션 테이블 변경은 migration으로 남긴다.
+
+원칙:
+
+- migration 설정은 `apps/api/app/db/migrations` 아래에 둔다.
+- migration 실행 URL은 `alembic.ini`에 직접 하드코딩하지 않고 `app.core.config.settings.database_url`을 사용한다.
+- 앱이 `postgresql+asyncpg` URL을 사용하므로 Alembic env도 async engine으로 실행한다.
+- autogenerate가 모델을 감지할 수 있도록 migration env에서 모델 모듈을 import한다.
+- 생성된 revision 파일은 적용 전에 사람이 검토한다.
+
+루트 명령:
+
+```bash
+pnpm db:revision -- -m "create users table"
+pnpm db:migration
+```
+
+API 패키지 명령:
+
+```bash
+pnpm --filter @huposit/api db:revision -- -m "create users table"
+pnpm --filter @huposit/api db:migration
+```
 
 ## API 계약과 OpenAPI
 
@@ -198,9 +230,12 @@ GET    /health
 GET    /health/db
 GET    /health/worker
 
+POST   /auth/signup
 POST   /auth/login
 POST   /auth/logout
 GET    /auth/me
+POST   /auth/verify-email
+POST   /auth/resend-verification-email
 
 POST   /source-files
 GET    /source-files
@@ -240,15 +275,35 @@ GET    /search
 - user id는 UUID 사용
 - 인증 이벤트는 audit log 후보로 남긴다.
 
-초기 MVP 인증 범위:
+초기 MVP 인증 정책:
+
+- 이메일/비밀번호 회원가입과 로그인
+- `email`은 유니크한 로그인 식별자로 사용
+- `username`은 초기 범위에서 제외
+- `email_verified`로 이메일 인증 상태를 저장
+- 비밀번호 hash는 Argon2id 사용
+- 세션은 DB-backed session으로 관리
+- 브라우저 세션 전달은 HttpOnly, Secure, SameSite=Lax cookie를 사용
+- 이메일 인증 메일은 Mailgun을 사용하고 발신자는 `Huposit <info@huposit.kr>`로 시작
+
+초기 MVP 인증 API 범위:
 
 - 이메일/비밀번호 회원가입
 - 로그인
 - 로그아웃
 - 현재 사용자 조회
+- 이메일 인증
+- 이메일 인증 메일 재발송
 - 비밀번호 변경 또는 재설정은 별도 티켓
 
 초기에는 organization/team 기능을 만들지 않는다. 모든 데이터는 단일 `user_id` 소유 모델에서 시작한다.
+
+미인증 사용자 정책:
+
+- `email_verified=false` 상태에서도 로그인은 허용할 수 있다.
+- 앱 화면에서는 이메일 인증 필요 상태를 명확히 보여준다.
+- 파일 업로드와 개인 데이터 생성 같은 주요 기능은 서버에서 `email_verified=true`를 요구한다.
+- 일정 기간 동안 인증되지 않았고 개인 데이터가 없는 계정은 정리 대상이 될 수 있다.
 
 주의:
 

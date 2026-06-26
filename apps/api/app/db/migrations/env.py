@@ -8,6 +8,9 @@ from alembic import context
 from app.core.config import settings
 from app.db.base import Base
 
+# Import models here so Alembic can detect them when autogenerating revisions.
+from app.features.auth.model import User  # noqa: F401
+
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
 config = context.config
@@ -18,7 +21,6 @@ config.set_main_option("sqlalchemy.url", settings.database_url)
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# Import models here so Alembic can detect them when autogenerating revisions.
 target_metadata = Base.metadata
 
 # other values from the config, defined by the needs of env.py,
