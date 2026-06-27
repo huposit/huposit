@@ -55,17 +55,22 @@ User
 현재 백엔드는 최소 구조만 있다.
 
 - `apps/api`: FastAPI 앱
-- `apps/api/app/main.py`: `/health`, `/health/db`, `/health/worker`
+- `apps/api/app/main.py`: API 앱 조립, CORS 설정, 공통 exception handler 등록, router include
 - `apps/api/app/core/config.py`: `.env` 기반 설정
+- `apps/api/app/core/cors.py`: 로컬 web origin CORS 설정
+- `apps/api/app/core/errors.py`: 도메인 예외를 HTTP JSON 응답으로 변환하는 공통 handler
+- `apps/api/app/core/security.py`: Argon2id password hash helper
 - `apps/api/app/db/session.py`: SQLAlchemy async engine/session
 - `apps/api/app/db/base.py`: SQLAlchemy `Base`와 `TimestampMixin`
 - `apps/api/app/db/migrations`: Alembic migration 설정과 revision 파일
+- `apps/api/app/features/auth`: 회원가입 API, schema, service, repository, User 모델, auth 도메인 예외
+- `apps/api/app/features/health`: `/health`, `/health/db`, `/health/worker`
 - `apps/api/app/tools/export_openapi.py`: 서버 실행 없이 OpenAPI JSON을 생성하는 도구
 - `apps/worker`: Python worker 앱
 - `apps/worker/app/main.py`: heartbeat loop
 - `infra/compose.yml`: PostgreSQL 17 + pgvector
 
-이 상태는 좋다. 아직 도메인 코드가 없으므로, 다음 구현부터 방향을 잘 잡으면 불필요한 리팩터링을 줄일 수 있다.
+인증은 HUP-13에서 email/password 회원가입 흐름부터 구현을 시작했다. 아직 로그인, 세션, 이메일 인증은 구현하지 않았으며, 다음 구현도 현재 계층 책임을 유지해 작게 확장한다.
 
 ## 배포 제약
 
@@ -162,6 +167,8 @@ apps/worker/app/
 - `schemas`: OpenAPI로 노출할 DTO를 정의한다.
 - `services`: use case를 담당한다.
 - `repositories`: DB query를 담당한다.
+- `features/<feature>/error.py`: 해당 feature의 도메인 예외를 둔다.
+- `core/errors.py`: 도메인 예외를 HTTP response로 변환하는 공통 FastAPI exception handler를 둔다.
 - `domain`: 상태 전이, enum, 도메인 규칙을 둔다.
 - `worker/jobs`: job type별 실행 흐름을 담당한다.
 - Python 패키지는 namespace package 방식을 사용하고, 새 디렉터리를 만들 때 `__init__.py`를 추가하지 않는다.
@@ -169,6 +176,21 @@ apps/worker/app/
 - `created_at`, `updated_at`이 필요한 테이블은 `TimestampMixin`을 함께 상속한다.
 
 중복 제거는 service 계층에서 시작한다. repository를 너무 일찍 generic하게 만들지 않는다.
+
+현재 `features/auth` 구현 패턴:
+
+- `router.py`: FastAPI request schema를 받고 response schema를 조립한다. 성공 흐름만 작성하고 중복 이메일 같은 도메인 실패를 직접 `try/except`로 처리하지 않는다.
+- `service.py`: email 정규화, password hash, repository 호출 같은 회원가입 use case 흐름을 담당한다. FastAPI response 객체를 만들지 않는다.
+- `repository.py`: 필요한 시점에 `AsyncSessionLocal`을 열고 닫으며 SQLAlchemy query와 commit/rollback을 담당한다.
+- `error.py`: `DuplicateEmailError`처럼 auth 도메인에서 의미 있는 예외를 정의한다.
+- `core/errors.py`: `DuplicateEmailError`를 `SignupResponse(status="error", ...)` JSON 응답으로 변환한다.
+
+DB session 관리:
+
+- 현재 회원가입은 repository 안에서 `AsyncSessionLocal`을 직접 열고 닫는다.
+- `DbSession` dependency는 SQLAlchemy 필수 요소가 아니라 FastAPI 요청 단위 session 주입 도구다.
+- 하나의 요청에서 여러 repository 작업을 같은 transaction으로 묶어야 할 때 `DbSession` 또는 explicit transaction boundary 도입을 검토한다.
+- `DbSession`을 쓰더라도 `commit`, `rollback`, `refresh`는 자동이 아니며 service 또는 repository에서 명시한다.
 
 ## DB Migration
 
@@ -297,6 +319,23 @@ GET    /search
 - 비밀번호 변경 또는 재설정은 별도 티켓
 
 초기에는 organization/team 기능을 만들지 않는다. 모든 데이터는 단일 `user_id` 소유 모델에서 시작한다.
+
+현재 회원가입 응답 계약:
+
+```json
+{
+  "status": "success",
+  "email": "user@example.com",
+  "email_verified": false,
+  "message": "User created successfully"
+}
+```
+
+- `SignupResponse.status`는 `"success" | "error"`를 사용한다.
+- 성공 응답은 router에서 `SignupResponse`로 조립한다.
+- 중복 이메일 같은 예상 가능한 도메인 실패는 `DuplicateEmailError`를 raise하고 `core/errors.py`에서 `SignupResponse(status="error", ...)`로 변환한다.
+- 비밀번호는 Argon2id hash로 저장하고 평문 password는 저장하거나 로그로 남기지 않는다.
+- email은 저장 전에 `strip().lower()`로 정규화한다.
 
 미인증 사용자 정책:
 
@@ -503,6 +542,8 @@ queued -> canceled
 ## 오류 처리와 응답 형식
 
 API 오류 응답은 프론트가 일관되게 처리할 수 있어야 한다.
+
+인증 MVP의 회원가입처럼 화면 상태와 직접 연결되는 endpoint는 response schema 안에서 `status`와 `message`를 반환할 수 있다. 이 경우 예상 가능한 도메인 실패는 feature 예외로 표현하고, `core/errors.py`의 FastAPI exception handler에서 response schema로 변환한다.
 
 권장 형식:
 

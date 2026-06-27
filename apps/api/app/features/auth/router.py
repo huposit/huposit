@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.features.auth.schema import SignupRequest, SignupResponse
+from app.features.auth.service import signup_with_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -11,14 +12,15 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     operation_id="signupWithEmail",
 )
 async def signup(request: SignupRequest) -> SignupResponse:
-    print(
-        "[auth.signup] received",
-        {"email": request.email, "password_length": len(request.password)},
+
+    created_user = await signup_with_email(
+        email=request.email,
+        password=request.password
     )
 
     return SignupResponse(
         status="success",
-        email=request.email,
-        email_verified=False,
-        message="회원가입 요청을 받았습니다.",
+        email=created_user.email,
+        email_verified=created_user.email_verified,
+        message="User created successfully"
     )
