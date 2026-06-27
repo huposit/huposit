@@ -1,5 +1,5 @@
-import { postApi } from "~/core/api/client";
-import type { SignupRequest, SignupResponse } from "./type";
+import { getApi, postApi } from "~/core/api/client";
+import type { SignupRequest, SignupResponse, UsersInfoResponse } from "./type";
 
 export const postSignupRequest = async (
   request: SignupRequest,
@@ -8,4 +8,8 @@ export const postSignupRequest = async (
     "/auth/signup",
     request,
   );
+};
+
+export const getUsersInfo = async (): Promise<UsersInfoResponse> => {
+  return await getApi<UsersInfoResponse>("/auth/users");
 };

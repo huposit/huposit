@@ -1,6 +1,6 @@
 import { LandingPage } from "~/features/landing/screens/landing-page";
 import type { Route } from "./+types/home";
-import { postSignupRequest } from "~/features/auth/api";
+import { getUsersInfo, postSignupRequest } from "~/features/auth/api";
 import {
   getDatabaseHealthResponse,
   getHealthResponse,
@@ -8,14 +8,16 @@ import {
 } from "~/features/health/api";
 
 export const loader = async () => {
-  const [server, database, worker] = await Promise.all([
+  const [server, database, worker, users] = await Promise.all([
     getHealthResponse(),
     getDatabaseHealthResponse(),
     getWorkerHealthResponse(),
+    getUsersInfo(),
   ]);
 
   return {
     health: { server, database, worker },
+    users,
   };
 };
 

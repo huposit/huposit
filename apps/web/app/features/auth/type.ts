@@ -6,3 +6,4 @@ import type {
 
 export type SignupRequest = JsonRequestBody<paths["/auth/signup"]["post"]>;
 export type SignupResponse = JsonResponse<paths["/auth/signup"]["post"]>;
+export type UsersInfoResponse = JsonResponse<paths["/auth/users"]["get"]>;

@@ -338,6 +338,15 @@ export default [
 - API client: `apps/web/app/core/api/client.ts`
 - OpenAPI generated types: `apps/web/app/core/api/openapi-types.ts`
 - OpenAPI type helpers: `apps/web/app/core/api/openapi-helpers.ts`
+- Feature API wrapper 예시: `apps/web/app/features/auth/api.ts`
+- Feature OpenAPI type alias 예시: `apps/web/app/features/auth/type.ts`
+
+현재 HUP-13 회원가입 연결 패턴:
+
+- `SignupRequest`, `SignupResponse`, `UsersInfoResponse`는 OpenAPI generated type에서 추출한다.
+- `postSignupRequest()`는 `postApi<SignupResponse, SignupRequest>()`를 사용한다.
+- `getUsersInfo()`는 `getApi<UsersInfoResponse>()`를 사용한다.
+- generated type을 화면에서 직접 깊게 참조하지 않고 feature type/API 파일에서 한 번 감싼다.
 
 ## 데이터 패칭과 상태 관리
 
@@ -349,6 +358,15 @@ export default [
 - 검색어, 필터, 정렬, 보기 모드는 URL query parameter로 표현한다.
 - 단순 UI 상태는 `useState`로 둔다.
 - 전역 상태 라이브러리는 초기에 도입하지 않는다.
+
+현재 HUP-13 회원가입 화면 패턴:
+
+- home route `loader`에서 health 상태와 회원 목록을 함께 조회한다.
+- home route `action`에서 회원가입 form submit을 처리한다.
+- `SignupRequestPanel`은 React Router `fetcher.Form`을 사용한다.
+- `fetcher.Form` submit 후 route loader가 재검증되면서 `GET /auth/users` 결과가 갱신된다.
+- `UserCardList`는 가입된 사용자를 카드로 보여준다.
+- 이 회원 목록 UI는 개발 중 DB 저장 여부를 눈으로 확인하기 위한 임시 검증 UI다. 운영 전에는 `/auth/users`를 보호하거나 제거한다.
 
 도입 판단 기준:
 
@@ -491,6 +509,35 @@ Done when:
 - loader로 초기 상태가 표시된다.
 - 버튼 클릭 시 현재 health loader가 다시 실행된다.
 - `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`가 통과한다.
+
+### HUP-13. email/password 회원가입 요청 화면
+
+Goal: 자체 로그인 MVP의 첫 단계로 email + password 회원가입 요청을 프론트에서 보내고, 실제 생성된 회원을 화면에서 확인한다.
+
+이 티켓은 장기 인증 UI 완성이 아니라 회원가입 API와 프론트 연결이 같은 OpenAPI 계약을 기준으로 동작하는지 확인하는 단계다.
+
+Scope:
+
+- home route action에서 `POST /auth/signup` 요청을 처리한다.
+- 회원가입 form은 React Router `fetcher.Form`을 사용한다.
+- API 요청/응답 타입은 OpenAPI generated type에서 feature type alias로 추출한다.
+- home route loader에서 `GET /auth/users`를 조회한다.
+- 가입된 회원 목록을 카드로 표시해 DB 저장 여부를 확인한다.
+
+Non-goal:
+
+- 로그인, 로그아웃, `/auth/me`
+- session cookie 처리
+- 이메일 인증 메일 발송
+- 비밀번호 재설정
+- 운영용 회원 관리 화면
+
+Done when:
+
+- email + password로 회원가입 요청을 보낼 수 있다.
+- 성공/실패 메시지가 화면에 표시된다.
+- 가입 후 회원 카드 목록에서 새 계정을 확인할 수 있다.
+- `pnpm openapi:generate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`가 통과한다.
 
 ### 1. 프론트 UI 토큰과 기본 컴포넌트 도입
 
