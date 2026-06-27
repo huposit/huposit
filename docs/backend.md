@@ -55,15 +55,22 @@ User
 현재 백엔드는 최소 구조만 있다.
 
 - `apps/api`: FastAPI 앱
-- `apps/api/app/main.py`: `/health`, `/health/db`, `/health/worker`
+- `apps/api/app/main.py`: API 앱 조립, CORS 설정, 공통 exception handler 등록, router include
 - `apps/api/app/core/config.py`: `.env` 기반 설정
+- `apps/api/app/core/cors.py`: 로컬 web origin CORS 설정
+- `apps/api/app/core/errors.py`: 도메인 예외를 HTTP JSON 응답으로 변환하는 공통 handler
+- `apps/api/app/core/security.py`: Argon2id password hash helper
 - `apps/api/app/db/session.py`: SQLAlchemy async engine/session
+- `apps/api/app/db/base.py`: SQLAlchemy `Base`와 `TimestampMixin`
+- `apps/api/app/db/migrations`: Alembic migration 설정과 revision 파일
+- `apps/api/app/features/auth`: 회원가입 API, 회원 목록 개발 검증 API, schema, service, repository, User 모델, auth 도메인 예외
+- `apps/api/app/features/health`: `/health`, `/health/db`, `/health/worker`
 - `apps/api/app/tools/export_openapi.py`: 서버 실행 없이 OpenAPI JSON을 생성하는 도구
 - `apps/worker`: Python worker 앱
 - `apps/worker/app/main.py`: heartbeat loop
 - `infra/compose.yml`: PostgreSQL 17 + pgvector
 
-이 상태는 좋다. 아직 도메인 코드가 없으므로, 다음 구현부터 방향을 잘 잡으면 불필요한 리팩터링을 줄일 수 있다.
+인증은 HUP-13에서 email/password 회원가입 흐름부터 구현을 시작했다. 현재 범위는 email 기반 사용자 생성, Argon2id password hash, 중복 email 처리, 회원가입 응답 계약, OpenAPI/web type 연결까지다. 아직 로그인, 세션, 이메일 인증 메일 발송은 구현하지 않았으며, 다음 구현도 현재 계층 책임을 유지해 작게 확장한다.
 
 ## 배포 제약
 
@@ -95,6 +102,7 @@ apps/api/app/
     security.py
     errors.py
   db/
+    base.py
     session.py
     migrations/
   api/
@@ -159,10 +167,58 @@ apps/worker/app/
 - `schemas`: OpenAPI로 노출할 DTO를 정의한다.
 - `services`: use case를 담당한다.
 - `repositories`: DB query를 담당한다.
+- `features/<feature>/error.py`: 해당 feature의 도메인 예외를 둔다.
+- `core/errors.py`: 도메인 예외를 HTTP response로 변환하는 공통 FastAPI exception handler를 둔다.
 - `domain`: 상태 전이, enum, 도메인 규칙을 둔다.
 - `worker/jobs`: job type별 실행 흐름을 담당한다.
+- Python 패키지는 namespace package 방식을 사용하고, 새 디렉터리를 만들 때 `__init__.py`를 추가하지 않는다.
+- SQLAlchemy 모델은 `app/db/base.py`의 `Base`를 상속한다.
+- `created_at`, `updated_at`이 필요한 테이블은 `TimestampMixin`을 함께 상속한다.
 
 중복 제거는 service 계층에서 시작한다. repository를 너무 일찍 generic하게 만들지 않는다.
+
+현재 `features/auth` 구현 패턴:
+
+- `router.py`: FastAPI request schema를 받고 response schema를 조립한다. 성공 흐름만 작성하고 중복 이메일 같은 도메인 실패를 직접 `try/except`로 처리하지 않는다.
+- `schema.py`: OpenAPI에 노출되는 request/response DTO를 정의한다.
+- `service.py`: email 정규화, password hash, repository 호출 같은 회원가입 use case 흐름을 담당한다. FastAPI response 객체를 만들지 않는다.
+- `repository.py`: 필요한 시점에 `AsyncSessionLocal`을 열고 닫으며 SQLAlchemy query와 commit/rollback을 담당한다.
+- `error.py`: `DuplicateEmailError`처럼 auth 도메인에서 의미 있는 예외를 정의한다.
+- `core/errors.py`: `DuplicateEmailError`를 `SignupResponse(status="error", ...)` JSON 응답으로 변환한다.
+- `GET /auth/users`: HUP-13 개발 중 사용자 저장 여부를 확인하기 위한 임시 조회 API다. 운영 전에는 관리자 전용으로 보호하거나 제거한다.
+
+DB session 관리:
+
+- 현재 회원가입은 repository 안에서 `AsyncSessionLocal`을 직접 열고 닫는다.
+- `DbSession` dependency는 SQLAlchemy 필수 요소가 아니라 FastAPI 요청 단위 session 주입 도구다.
+- 하나의 요청에서 여러 repository 작업을 같은 transaction으로 묶어야 할 때 `DbSession` 또는 explicit transaction boundary 도입을 검토한다.
+- `DbSession`을 쓰더라도 `commit`, `rollback`, `refresh`는 자동이 아니며 service 또는 repository에서 명시한다.
+
+## DB Migration
+
+DB schema 변경은 Alembic revision으로 관리한다. Docker init SQL은 PostgreSQL 확장 설치처럼 초기 인프라에 필요한 작업에만 사용하고, 애플리케이션 테이블 변경은 migration으로 남긴다.
+
+원칙:
+
+- migration 설정은 `apps/api/app/db/migrations` 아래에 둔다.
+- migration 실행 URL은 `alembic.ini`에 직접 하드코딩하지 않고 `app.core.config.settings.database_url`을 사용한다.
+- 앱이 `postgresql+asyncpg` URL을 사용하므로 Alembic env도 async engine으로 실행한다.
+- autogenerate가 모델을 감지할 수 있도록 migration env에서 모델 모듈을 import한다.
+- 생성된 revision 파일은 적용 전에 사람이 검토한다.
+
+루트 명령:
+
+```bash
+pnpm db:revision -- -m "create users table"
+pnpm db:migration
+```
+
+API 패키지 명령:
+
+```bash
+pnpm --filter @huposit/api db:revision -- -m "create users table"
+pnpm --filter @huposit/api db:migration
+```
 
 ## API 계약과 OpenAPI
 
@@ -198,9 +254,13 @@ GET    /health
 GET    /health/db
 GET    /health/worker
 
+POST   /auth/signup
+GET    /auth/users  # HUP-13 개발 검증용. 운영 전 보호 또는 제거
 POST   /auth/login
 POST   /auth/logout
 GET    /auth/me
+POST   /auth/verify-email
+POST   /auth/resend-verification-email
 
 POST   /source-files
 GET    /source-files
@@ -240,15 +300,62 @@ GET    /search
 - user id는 UUID 사용
 - 인증 이벤트는 audit log 후보로 남긴다.
 
-초기 MVP 인증 범위:
+초기 MVP 인증 정책:
+
+- 이메일/비밀번호 회원가입과 로그인
+- `email`은 유니크한 로그인 식별자로 사용
+- `username`은 초기 범위에서 제외
+- `email_verified`로 이메일 인증 상태를 저장
+- 비밀번호 hash는 Argon2id 사용
+- 세션은 DB-backed session으로 관리
+- 브라우저 세션 전달은 HttpOnly, Secure, SameSite=Lax cookie를 사용
+- 이메일 인증 메일은 Mailgun을 사용하고 발신자는 `Huposit <info@huposit.kr>`로 시작
+
+초기 MVP 인증 API 범위:
 
 - 이메일/비밀번호 회원가입
 - 로그인
 - 로그아웃
 - 현재 사용자 조회
+- 이메일 인증
+- 이메일 인증 메일 재발송
 - 비밀번호 변경 또는 재설정은 별도 티켓
 
 초기에는 organization/team 기능을 만들지 않는다. 모든 데이터는 단일 `user_id` 소유 모델에서 시작한다.
+
+HUP-13에서 구현된 현재 범위:
+
+- `POST /auth/signup`
+- `GET /auth/users` 개발 검증용 조회
+- email unique users table
+- `email_verified=false` 기본 생성
+- Argon2id password hash
+- `DuplicateEmailError`와 공통 exception handler 기반 중복 email 응답
+- 서버 실행 없이 OpenAPI 생성 후 web generated type 갱신
+
+현재 회원가입 응답 계약:
+
+```json
+{
+  "status": "success",
+  "email": "user@example.com",
+  "email_verified": false,
+  "message": "User created successfully"
+}
+```
+
+- `SignupResponse.status`는 `"success" | "error"`를 사용한다.
+- 성공 응답은 router에서 `SignupResponse`로 조립한다.
+- 중복 이메일 같은 예상 가능한 도메인 실패는 `DuplicateEmailError`를 raise하고 `core/errors.py`에서 `SignupResponse(status="error", ...)`로 변환한다.
+- 비밀번호는 Argon2id hash로 저장하고 평문 password는 저장하거나 로그로 남기지 않는다.
+- email은 저장 전에 `strip().lower()`로 정규화한다.
+
+미인증 사용자 정책:
+
+- `email_verified=false` 상태에서도 로그인은 허용할 수 있다.
+- 앱 화면에서는 이메일 인증 필요 상태를 명확히 보여준다.
+- 파일 업로드와 개인 데이터 생성 같은 주요 기능은 서버에서 `email_verified=true`를 요구한다.
+- 일정 기간 동안 인증되지 않았고 개인 데이터가 없는 계정은 정리 대상이 될 수 있다.
 
 주의:
 
@@ -449,6 +556,8 @@ queued -> canceled
 
 API 오류 응답은 프론트가 일관되게 처리할 수 있어야 한다.
 
+인증 MVP의 회원가입처럼 화면 상태와 직접 연결되는 endpoint는 response schema 안에서 `status`와 `message`를 반환할 수 있다. 이 경우 예상 가능한 도메인 실패는 feature 예외로 표현하고, `core/errors.py`의 FastAPI exception handler에서 response schema로 변환한다.
+
 권장 형식:
 
 ```json
@@ -579,13 +688,12 @@ Done when:
 - 외부 managed Auth provider를 쓰지 않는 이유와 라이브러리 선택 근거가 기록된다
 - 구현 티켓이 2개 이상으로 분리된다
 
-### 4. 회원가입/로그인/로그아웃 MVP
+### 4. 로그인/로그아웃 MVP
 
-Goal: 단일 사용자 소유 데이터 모델을 위한 자체 로그인 MVP를 구현한다.
+Goal: HUP-13에서 만든 email/password 회원가입 기반 위에 자체 로그인 MVP를 구현한다.
 
 Scope:
 
-- 회원가입
 - 로그인
 - 로그아웃
 - 현재 사용자 조회
@@ -594,7 +702,9 @@ Scope:
 
 Done when:
 
+- 유효한 email/password로 로그인할 수 있다
 - `/auth/me`가 로그인 상태를 반환한다
+- logout 후 세션이 무효화된다
 - 잘못된 로그인 시 안전한 오류가 반환된다
 - 인증 테스트가 통과한다
 

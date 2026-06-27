@@ -18,7 +18,7 @@
 - Package manager: pnpm 11.8.0
 - Python environment: uv
 
-작업 이력은 Linear 티켓의 Done 시점을 기준으로 [docs/logs/README.md](docs/logs/README.md)에 정리합니다.
+작업 이력은 Git commit timestamp를 기준으로 커밋 단위로 [docs/logs/README.md](docs/logs/README.md)에 간단히 정리합니다.
 
 ## Requirements
 
@@ -62,6 +62,12 @@ pnpm sync:py
 
 ```bash
 pnpm db:up
+```
+
+DB schema 변경은 Alembic migration으로 관리합니다. 로컬 DB를 최신 schema로 맞출 때는 다음 명령을 실행합니다.
+
+```bash
+pnpm db:migration
 ```
 
 ## Development
@@ -122,6 +128,8 @@ pnpm typecheck  # workspace typecheck task 실행
 pnpm sync:py    # Python 앱 uv sync 실행
 pnpm openapi:generate  # OpenAPI schema와 web TypeScript 타입 생성
 pnpm db:up      # PostgreSQL + pgvector 컨테이너 실행
+pnpm db:revision -- -m "create users table"  # Alembic migration 파일 생성
+pnpm db:migration  # Alembic migration 적용
 ```
 
 `build`, `test`, `lint`, `typecheck`는 `apps/web`, `apps/api`, `apps/worker`에서 공통으로 지원합니다. Python 앱의 `build`는 아직 패키징을 만들지 않고 `compileall`로 앱 코드의 문법/import 가능성을 검증합니다.
@@ -145,6 +153,26 @@ pnpm openapi:types  # apps/web/app/core/api/openapi-types.ts 생성
 
 생성 파일은 API 계약 변경을 PR에서 확인할 수 있도록 커밋합니다. `apps/web/app/core/api/openapi-types.ts`는 생성 파일이므로 직접 수정하지 않고, FastAPI schema를 바꾼 뒤 `pnpm openapi:generate`로 다시 만듭니다. API client와 OpenAPI 타입 helper는 `apps/web/app/core/api` 아래에 둡니다.
 
+## Database Migrations
+
+API DB schema는 Alembic으로 관리합니다.
+
+```bash
+pnpm db:revision -- -m "create users table"
+pnpm db:migration
+```
+
+- `db:revision`: SQLAlchemy 모델과 현재 DB를 비교해 migration 파일을 생성합니다.
+- `db:migration`: 아직 적용되지 않은 migration을 최신 revision까지 적용합니다.
+
+`db:revision`은 실제 DB와 모델을 비교하므로 로컬 PostgreSQL이 실행 중이어야 합니다.
+
+```bash
+pnpm db:up
+```
+
+생성된 migration 파일은 `apps/api/app/db/migrations/versions` 아래에 생깁니다. 생성 후에는 파일 내용을 검토한 뒤 적용합니다.
+
 ## Project Structure
 
 ```txt
@@ -155,7 +183,7 @@ apps/
 
 infra/       # Docker Compose and local infrastructure
 docs/
-  logs/      # Linear Done time based development logs
+  logs/      # Commit timestamp based development logs
   workflow.md
   testflow.md
 ```

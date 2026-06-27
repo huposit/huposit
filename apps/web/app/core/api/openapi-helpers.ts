@@ -9,3 +9,13 @@ export type JsonResponse<T> = T extends {
 }
   ? Response
   : never;
+
+export type JsonRequestBody<T> = T extends {
+  requestBody: {
+    content: {
+      "application/json": infer Request;
+    };
+  };
+}
+  ? Request
+  : never;

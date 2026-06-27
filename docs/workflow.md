@@ -100,6 +100,8 @@ test   테스트 추가 또는 수정
 
 커밋의 작업 요약은 한글로 작성한다. 커밋 후에는 필요한 경우 Linear issue에 변경사항을 짧게 남긴다. 작업이 길어질 때는 중간 커밋을 만들고 필요 시 원격에 push해 작업을 보존한다.
 
+개발 로그를 작성할 때는 티켓 완료 시점이 아니라 Git commit timestamp를 기준으로 한다. 로그는 커밋 단위로 `docs/logs/YYYY-MM/week-WW/YYYY-MM-DD.md`에 간단히 남기며, 자세한 형식은 `docs/logs/README.md`를 따른다.
+
 ## 5. Codex 활용 규칙
 
 Codex에게 작업을 맡기거나 안내를 받을 때는 다음 흐름을 기본으로 한다.

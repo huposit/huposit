@@ -14,7 +14,9 @@
     "openapi:json": "pnpm --filter @huposit/api openapi:json",
     "openapi:types": "pnpm --filter @huposit/web openapi:types",
     "openapi:generate": "pnpm openapi:json && pnpm openapi:types",
-    "db:up": "docker compose -f infra/compose.yml up -d"
+    "db:up": "docker compose -f infra/compose.yml up -d",
+    "db:revision": "pnpm --filter @huposit/api db:revision",
+    "db:migration": "pnpm --filter @huposit/api db:migration"
   },
   "keywords": [],
   "author": "",
