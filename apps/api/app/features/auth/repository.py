@@ -1,6 +1,5 @@
-from sqlalchemy.exc import IntegrityError
-
 from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
 
 from app.db.session import AsyncSessionLocal
 from app.features.auth.error import DuplicateEmailError
@@ -18,11 +17,10 @@ async def email_exists(email: str) -> bool:
 
 
 async def create_user(email: str, hash_pass: str) -> User:
-
     user = User(
         email=email,
         password_hash=hash_pass,
-        email_verified=False
+        email_verified=False,
     )
 
     async with AsyncSessionLocal() as session:
@@ -35,3 +33,13 @@ async def create_user(email: str, hash_pass: str) -> User:
         except IntegrityError as exc:
             await session.rollback()
             raise DuplicateEmailError(email) from exc
+
+
+async def get_users() -> list[User]:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .order_by(User.created_at.desc())
+            .limit(50)
+        )
+        return list(result.scalars().all())
