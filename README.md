@@ -18,7 +18,7 @@
 - Package manager: pnpm 11.8.0
 - Python environment: uv
 
-작업 이력은 Linear 티켓의 Done 시점을 기준으로 [docs/logs/README.md](docs/logs/README.md)에 정리합니다.
+작업 이력은 Git commit timestamp를 기준으로 커밋 단위로 [docs/logs/README.md](docs/logs/README.md)에 간단히 정리합니다.
 
 ## Requirements
 
@@ -183,7 +183,7 @@ apps/
 
 infra/       # Docker Compose and local infrastructure
 docs/
-  logs/      # Linear Done time based development logs
+  logs/      # Commit timestamp based development logs
   workflow.md
   testflow.md
 ```
