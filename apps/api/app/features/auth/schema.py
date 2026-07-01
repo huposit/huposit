@@ -21,3 +21,15 @@ class UserInfoResponse(BaseModel):
     email: EmailStr
     email_verified: bool
     created_at: datetime
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8, max_length=128)
+
+
+class LoginResponse(BaseModel):
+    status: Literal["success", "error"]
+    email: EmailStr
+    access_token: str | None
+    message: str
