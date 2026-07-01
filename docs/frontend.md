@@ -348,6 +348,15 @@ export default [
 - `getUsersInfo()`는 `getApi<UsersInfoResponse>()`를 사용한다.
 - generated type을 화면에서 직접 깊게 참조하지 않고 feature type/API 파일에서 한 번 감싼다.
 
+HUP-14 로그인 연결 기준:
+
+- 로그인 API 타입도 OpenAPI generated type에서 feature type alias로 추출한다.
+- 로그인 요청 함수는 기존 `apps/web/app/features/auth/api.ts` 패턴을 이어받아 `postApi` 기반으로 얇게 감싼다.
+- 최소 UI는 email/password 입력, 제출 버튼, 성공/실패 메시지, access token 수신 여부 확인까지만 담당한다.
+- HUP-14에서는 token을 영구 저장하지 않는다. localStorage/sessionStorage 저장, 보호 라우트 전환, 자동 refresh, logout UX는 후속 티켓으로 둔다.
+- 로그인 확인 UI는 기존 home route 또는 auth feature 안의 개발용 화면에 작게 붙이고, 장기 콘솔 앱 셸과 충돌하지 않게 유지한다.
+- refresh token이 후속 티켓에서 확정될 수 있으므로, 화면은 응답의 `access_token`, `token_type`, `expires_in`을 확인하는 데 집중하고 session 모델을 먼저 고정하지 않는다.
+
 ## 데이터 패칭과 상태 관리
 
 초기 원칙:
@@ -367,6 +376,13 @@ export default [
 - `fetcher.Form` submit 후 route loader가 재검증되면서 `GET /auth/users` 결과가 갱신된다.
 - `UserCardList`는 가입된 사용자를 카드로 보여준다.
 - 이 회원 목록 UI는 개발 중 DB 저장 여부를 눈으로 확인하기 위한 임시 검증 UI다. 운영 전에는 `/auth/users`를 보호하거나 제거한다.
+
+HUP-14 로그인 화면 패턴:
+
+- 로그인 확인 UI도 React Router `fetcher.Form` 또는 기존 home route action 패턴을 우선 사용한다.
+- 로그인 성공 후에는 access token 원문 전체를 장기 저장하거나 여러 화면으로 전파하지 않고, 수신 여부와 만료 정보만 확인 가능한 UI로 제한한다.
+- 인증 상태를 전역 store로 만들지 않는다. 보호 라우트, 현재 사용자 조회, token refresh가 필요해지는 시점에 별도 티켓에서 상태 모델을 정한다.
+- 로그인 실패는 email 없음과 password 오류를 구분하지 않는 사용자 메시지로 보여준다.
 
 도입 판단 기준:
 
@@ -538,6 +554,35 @@ Done when:
 - 성공/실패 메시지가 화면에 표시된다.
 - 가입 후 회원 카드 목록에서 새 계정을 확인할 수 있다.
 - `pnpm openapi:generate`, `pnpm lint`, `pnpm typecheck`, `pnpm test`, `pnpm build`가 통과한다.
+
+### HUP-14. email/password 로그인 요청 화면
+
+Goal: HUP-13에서 생성한 계정으로 로그인 요청을 보내고, 프론트에서 access token 발급 성공/실패를 간단히 확인한다.
+
+이 티켓은 장기 인증 UI 완성이 아니라 로그인 API와 프론트 연결이 같은 OpenAPI 계약을 기준으로 동작하는지 확인하는 단계다. refresh token과 session UX는 후속 티켓에서 정책을 확정한다.
+
+Scope:
+
+- home route 또는 auth feature의 개발용 영역에서 `POST /auth/login` 요청을 처리한다.
+- 로그인 form은 email/password 입력과 제출 버튼만 포함한다.
+- API 요청/응답 타입은 OpenAPI generated type에서 feature type alias로 추출한다.
+- 성공 시 access token 수신 여부, token type, 만료 시간을 확인할 수 있게 표시한다.
+- 실패 시 사용자 존재 여부를 노출하지 않는 공통 인증 실패 메시지를 표시한다.
+
+Non-goal:
+
+- refresh token 저장 또는 rotation
+- localStorage/sessionStorage 기반 장기 저장
+- 보호 라우트 전환
+- logout UX
+- `/auth/me` 기반 전역 인증 상태
+
+Done when:
+
+- 올바른 email + password로 로그인 요청을 보낼 수 있다.
+- 성공 시 access token 수신 여부가 화면에서 확인된다.
+- 잘못된 email/password는 같은 실패 메시지로 표시된다.
+- `pnpm openapi:generate`와 변경 범위에 맞는 API/Web 검증 명령이 통과한다.
 
 ### 1. 프론트 UI 토큰과 기본 컴포넌트 도입
 
