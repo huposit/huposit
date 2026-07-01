@@ -43,3 +43,12 @@ async def get_users() -> list[User]:
             .limit(50)
         )
         return list(result.scalars().all())
+
+async def get_user_by_email(email: str) -> User | None:
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(User)
+            .where(User.email == email)
+            .limit(1)
+        )
+        return result.scalar_one_or_none()

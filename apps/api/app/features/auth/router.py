@@ -1,7 +1,13 @@
 from fastapi import APIRouter
 
-from app.features.auth.schema import SignupRequest, SignupResponse, UserInfoResponse
-from app.features.auth.service import get_all_users, signup_with_email
+from app.features.auth.schema import (
+    LoginRequest,
+    LoginResponse,
+    SignupRequest,
+    SignupResponse,
+    UserInfoResponse,
+)
+from app.features.auth.service import authenticate_user, get_all_users, signup_with_email
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -42,3 +48,24 @@ async def get_users_info() -> list[UserInfoResponse]:
         )
         for user in users
     ]
+
+
+@router.post(
+    "/login",
+    response_model=LoginResponse,
+    operation_id="loginWithEmail",
+)
+async def login(request: LoginRequest) -> LoginResponse:
+    token = await authenticate_user(
+        request.email,
+        request.password,
+    )
+
+    is_valid = token is not None
+
+    return LoginResponse(
+        status="success" if is_valid else "error",
+        email=request.email,
+        access_token=token if is_valid else None,
+        message="Login successful" if is_valid else "Invalid email or password",
+    )

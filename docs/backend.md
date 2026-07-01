@@ -350,6 +350,18 @@ HUP-13에서 구현된 현재 범위:
 - 비밀번호는 Argon2id hash로 저장하고 평문 password는 저장하거나 로그로 남기지 않는다.
 - email은 저장 전에 `strip().lower()`로 정규화한다.
 
+HUP-14 로그인 구현 전 기준:
+
+- `POST /auth/login`은 HUP-13에서 생성한 email/password 계정으로 access token을 발급하는 MVP endpoint다.
+- 로그인 입력은 `email`, `password`로 시작하며, email은 회원가입과 같은 방식으로 `strip().lower()` 정규화 후 조회한다.
+- 존재하지 않는 email과 잘못된 password는 같은 인증 실패 응답으로 처리해 사용자 존재 여부를 노출하지 않는다.
+- password 검증은 HUP-13의 Argon2id hash helper를 재사용하거나 같은 `core/security.py` 경계 안에 둔다.
+- access token 생성은 route 내부에 길게 두지 않고 auth service 또는 token helper로 분리한다.
+- 로그인 성공 응답은 refresh token을 당장 포함하지 않고 `access_token`, `token_type`, `expires_in` 형태로 둔다.
+- refresh token, token rotation, DB-backed long-lived session, logout/session revoke는 HUP-14 범위 밖이며 후속 티켓에서 정책을 확정한다.
+- 다만 HUP-14의 token 발급 함수와 response schema는 후속 refresh token 티켓에서 재사용하기 어렵지 않은 구조로 둔다.
+- API 계약이 바뀌므로 구현 후 `pnpm openapi:generate`로 OpenAPI와 web generated type을 갱신한다.
+
 미인증 사용자 정책:
 
 - `email_verified=false` 상태에서도 로그인은 허용할 수 있다.

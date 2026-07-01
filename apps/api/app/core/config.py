@@ -1,11 +1,16 @@
 from pathlib import Path
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 ROOT_DIR = Path(__file__).resolve().parents[4]
 ENV_FILE = ROOT_DIR / ".env"
 
+
 class Settings(BaseSettings):
     database_url: str = "postgresql+asyncpg://root:1234@localhost:5432/pgvdb"
+
+    access_token_secret: str = "dev-secret-change-me"
+    access_token_expire_minutes: int = 30
 
     model_config = SettingsConfigDict(
         env_file=ENV_FILE,

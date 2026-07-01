@@ -1,4 +1,7 @@
 {
+  "settings": {
+    "terminal.integrated.cwd": "${workspaceFolder:huposit}"
+  },
   "folders": [
     {
       "name": "api",

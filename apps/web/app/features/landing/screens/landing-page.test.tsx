@@ -18,6 +18,7 @@ describe("LandingPage", () => {
 
     expect(html).toContain("개인 맥락을 저장하고 다시 찾는 작업 공간");
     expect(html).toContain("회원가입 요청");
+    expect(html).toContain("로그인 요청");
     expect(html).toContain("가입된 회원");
     expect(html).toContain("person@example.com");
     expect(html).toContain("API Health");
