@@ -1,5 +1,11 @@
 import { getApi, postApi } from "~/core/api/client";
-import type { SignupRequest, SignupResponse, UsersInfoResponse } from "./type";
+import type {
+  LoginRequest,
+  LoginResponse,
+  SignupRequest,
+  SignupResponse,
+  UsersInfoResponse,
+} from "./type";
 
 export const postSignupRequest = async (
   request: SignupRequest,
@@ -12,4 +18,13 @@ export const postSignupRequest = async (
 
 export const getUsersInfo = async (): Promise<UsersInfoResponse> => {
   return await getApi<UsersInfoResponse>("/auth/users");
+};
+
+export const postLoginRequest = async (
+  request: LoginRequest,
+): Promise<LoginResponse> => {
+  return await postApi<LoginResponse, LoginRequest>(
+    "/auth/login",
+    request,
+  );
 };

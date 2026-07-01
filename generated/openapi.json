@@ -268,19 +268,15 @@
             "title": "Email"
           },
           "access_token": {
-            "type": "string",
-            "title": "Access Token"
-          },
-          "expires_in": {
             "anyOf": [
               {
-                "type": "integer"
+                "type": "string"
               },
               {
                 "type": "null"
               }
             ],
-            "title": "Expires In"
+            "title": "Access Token"
           },
           "message": {
             "type": "string",

@@ -20,36 +20,41 @@ import {
   FieldLabel,
 } from "~/core/components/ui/field";
 import { Input } from "~/core/components/ui/input";
-import type { SignupResponse } from "~/features/auth/type";
+import type { LoginResponse } from "~/features/auth/type";
 
-export function SignupRequestPanel() {
-  const fetcher = useFetcher<SignupResponse>();
+export function LoginRequestPanel() {
+  const fetcher = useFetcher<LoginResponse>();
   const isSubmitting = fetcher.state === "submitting";
+  const tokenPreview = fetcher.data?.access_token
+    ? `${fetcher.data.access_token.slice(0, 18)}...`
+    : null;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>회원가입 요청</CardTitle>
-        <CardDescription>email + password</CardDescription>
+        <CardTitle>로그인 요청</CardTitle>
+        <CardDescription>access token 발급 확인</CardDescription>
       </CardHeader>
       <CardContent>
         <fetcher.Form className="grid gap-4" method="post">
-          <input name="intent" type="hidden" value="signup" />
+          <input name="intent" type="hidden" value="login" />
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="signup-email">Email</FieldLabel>
-              <Input id="signup-email" name="email" type="email" required />
+              <FieldLabel htmlFor="login-email">Email</FieldLabel>
+              <Input id="login-email" name="email" type="email" required />
             </Field>
             <Field>
-              <FieldLabel htmlFor="signup-password">Password</FieldLabel>
+              <FieldLabel htmlFor="login-password">Password</FieldLabel>
               <Input
-                id="signup-password"
+                id="login-password"
                 name="password"
                 type="password"
                 minLength={8}
                 required
               />
-              <FieldDescription>8자 이상 입력하세요.</FieldDescription>
+              <FieldDescription>
+                가입한 email과 password로 access token 발급을 확인합니다.
+              </FieldDescription>
             </Field>
           </FieldGroup>
 
@@ -61,10 +66,17 @@ export function SignupRequestPanel() {
             >
               <AlertTitle>
                 {fetcher.data.status === "error"
-                  ? "요청 실패"
-                  : "요청을 받았습니다"}
+                  ? "로그인 실패"
+                  : "로그인 성공"}
               </AlertTitle>
-              <AlertDescription>{fetcher.data.message}</AlertDescription>
+              <AlertDescription>
+                {fetcher.data.message}
+                {tokenPreview ? (
+                  <span className="mt-1 block font-mono text-[11px]">
+                    token: {tokenPreview}
+                  </span>
+                ) : null}
+              </AlertDescription>
             </Alert>
           ) : null}
 
@@ -74,7 +86,7 @@ export function SignupRequestPanel() {
               disabled={isSubmitting}
               className="cursor-pointer"
             >
-              {isSubmitting ? "Sending..." : "Send"}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
           </div>
         </fetcher.Form>
